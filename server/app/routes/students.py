@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from ..db import db
-from ..models.models import Student
+from ..models.models import Student, TaskAssignmentStudent
 
 bp = Blueprint("students", __name__)
 
@@ -89,6 +89,9 @@ def delete_student(ext_id: str):
     s = Student.get_by_identifier(ext_id)
     if not s:
         return jsonify({"message": "Not found"}), 404
+    # Remove assignment links first to satisfy FK constraints
+    TaskAssignmentStudent.query.filter_by(student_id=s.id).delete()
+    db.session.flush()
     db.session.delete(s)
     db.session.commit()
     return jsonify({"ok": True})
