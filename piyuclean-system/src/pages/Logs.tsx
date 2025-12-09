@@ -34,8 +34,8 @@ const Logs = () => {
     const assignment = assignments.find((a) => a.id === id);
     if (!assignment) return;
     try {
-      const taskAssignmentId = assignment.id.split('-')[0];
-      await updateAssignmentRaw(taskAssignmentId, { status: 'completed', completedAt: new Date().toISOString() });
+      // Use the base assignment identifier provided by the API instead of splitting the composite id
+      await updateAssignmentRaw(assignment.assignmentId, { status: 'completed', completedAt: new Date().toISOString() });
       const a = await getAssignmentsExpanded();
       setAssignments(a);
       toast({ title: 'Success', description: 'Task marked as completed.' });
