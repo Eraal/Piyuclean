@@ -103,8 +103,11 @@ def student_performance():
 
     students.sort(key=lambda x: (x["completionRate"], x["completed"]), reverse=True)
 
+    start_out = start.isoformat() if start else None
+    end_out = end.isoformat() if end else None
+
     return jsonify({
-        "start": start.isoformat(),
-        "end": end.isoformat(),
+        "start": start_out,
+        "end": end_out,
         "students": students,
     })
