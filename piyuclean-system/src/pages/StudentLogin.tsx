@@ -99,9 +99,6 @@ const StudentLogin = () => {
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
-            <div className="text-xs text-center text-gray-500 mt-4 bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-              <span className="font-medium">Test Student:</span> student / student123
-            </div>
           </form>
           <div className="mt-6 pt-6 border-t border-gray-200 text-center space-y-3">
             <div>

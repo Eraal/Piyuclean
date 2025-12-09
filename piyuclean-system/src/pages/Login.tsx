@@ -99,9 +99,6 @@ const Login = () => {
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
-            <div className="text-xs text-center text-gray-500 mt-4 bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-              <span className="font-medium">Default credentials:</span> admin / admin123
-            </div>
           </form>
           <div className="mt-6 pt-6 border-t border-gray-200 text-center">
             <a href="/student/login" className="text-sm text-emerald-600 hover:text-emerald-700 font-medium hover:underline">
