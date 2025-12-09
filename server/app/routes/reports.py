@@ -55,18 +55,21 @@ def weekly_summary():
 def student_performance():
     start = _parse_date(request.args.get("start"))
     end = _parse_date(request.args.get("end"))
-    if not start or not end:
-        # Default to last 28 days
-        end = date.today()
-        start = end - timedelta(days=27)
+    # If no range is provided, include all data (do not filter by date)
+    # This prevents empty results when data exists outside the last 28 days.
+    apply_date_filter = bool(start and end)
+    if not apply_date_filter:
+        start = None
+        end = None
 
     # Join TaskAssignmentStudent -> TaskAssignment -> Student
     q = (
         TaskAssignmentStudent.query
         .join(TaskAssignment, TaskAssignmentStudent.assignment_id == TaskAssignment.id)
         .join(Student, TaskAssignmentStudent.student_id == Student.id)
-        .filter(TaskAssignment.date >= start, TaskAssignment.date <= end)
     )
+    if apply_date_filter:
+        q = q.filter(TaskAssignment.date >= start, TaskAssignment.date <= end)
 
     # Aggregate in Python for simplicity
     perf: dict[int, dict] = {}
