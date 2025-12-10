@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
+from sqlalchemy.exc import IntegrityError
 from ..db import db
-from ..models.models import Classroom
+from ..models.models import Classroom, TaskAssignment
 
 bp = Blueprint("classrooms", __name__)
 
@@ -35,7 +36,11 @@ def create_classroom():
         description=data.get("description", ""),
     )
     db.session.add(c)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        return jsonify({"message": "Classroom with same id already exists", "detail": str(e.orig) if getattr(e, 'orig', None) else None}), 409
     return jsonify({"id": c.ext_id or str(c.id)}), 201
 
 
@@ -63,6 +68,9 @@ def delete_classroom(ext_id: str):
     c = Classroom.get_by_identifier(ext_id)
     if not c:
         return jsonify({"message": "Not found"}), 404
+    # Prevent deleting classrooms that are referenced by assignments
+    if TaskAssignment.query.filter_by(classroom_id=c.id).first():
+        return jsonify({"message": "Classroom is in use by assignments"}), 400
     db.session.delete(c)
     db.session.commit()
     return jsonify({"ok": True})
