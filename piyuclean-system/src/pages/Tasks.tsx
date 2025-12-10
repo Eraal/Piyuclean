@@ -50,6 +50,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 const Tasks = () => {
   const [tasks, setTasks] = useState<CleaningTask[]>([]);
@@ -69,6 +70,17 @@ const Tasks = () => {
   });
   const [errorDialog, setErrorDialog] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const friendlyMessage = (raw: string | null) => {
+    if (!raw) return 'This item cannot be deleted right now.';
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed?.message) return String(parsed.message);
+    } catch (_) {
+      // not JSON
+    }
+    return raw.replace(/^[{\"]+|[\"}]+$/g, '');
+  };
 
   useEffect(() => {
     (async () => {
@@ -461,8 +473,8 @@ const Tasks = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Action blocked</AlertDialogTitle>
-            <AlertDialogDescription>
-              {errorDialog || 'This item cannot be deleted because it is in use.'}
+            <AlertDialogDescription className={cn('text-sm text-muted-foreground')}>
+              {friendlyMessage(errorDialog)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
