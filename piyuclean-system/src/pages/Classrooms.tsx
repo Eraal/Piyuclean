@@ -19,6 +19,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+} from '@/components/ui/alert-dialog';
 import { getClassrooms as apiGetClassrooms, createClassroom, updateClassroom as apiUpdateClassroom, deleteClassroom as apiDeleteClassroom, type Classroom } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
@@ -34,6 +43,7 @@ const Classrooms = () => {
     name: '',
     description: '',
   });
+  const [errorDialog, setErrorDialog] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -115,7 +125,9 @@ const Classrooms = () => {
         setClassrooms(data);
       } catch (e) {
         console.error(e);
-        toast({ variant: 'destructive', title: 'Failed to delete classroom' });
+        const msg = e instanceof Error ? e.message : 'Failed to delete classroom';
+        // Show a modal for better UX when deletion is blocked (e.g., referenced by assignments)
+        setErrorDialog(msg);
         return;
       }
       toast({
@@ -242,6 +254,20 @@ const Classrooms = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!errorDialog} onOpenChange={(open) => !open && setErrorDialog(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unable to delete classroom</AlertDialogTitle>
+            <AlertDialogDescription>
+              {errorDialog || 'This classroom cannot be deleted right now.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setErrorDialog(null)}>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
