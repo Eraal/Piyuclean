@@ -21,6 +21,15 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Tabs,
   TabsContent,
   TabsList,
@@ -58,6 +67,7 @@ const Tasks = () => {
     description: '',
     taskIds: [],
   });
+  const [errorDialog, setErrorDialog] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -129,7 +139,8 @@ const Tasks = () => {
         setTasks(t);
       } catch (e) {
         console.error(e);
-        toast({ variant: 'destructive', title: 'Failed to delete task' });
+        const msg = e instanceof Error ? e.message : 'Failed to delete task';
+        setErrorDialog(msg);
         return;
       }
       toast({
@@ -197,7 +208,8 @@ const Tasks = () => {
         setChecklists(c);
       } catch (e) {
         console.error(e);
-        toast({ variant: 'destructive', title: 'Failed to delete checklist' });
+        const msg = e instanceof Error ? e.message : 'Failed to delete checklist';
+        setErrorDialog(msg);
         return;
       }
       toast({
@@ -444,6 +456,20 @@ const Tasks = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!errorDialog} onOpenChange={(open) => !open && setErrorDialog(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Action blocked</AlertDialogTitle>
+            <AlertDialogDescription>
+              {errorDialog || 'This item cannot be deleted because it is in use.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setErrorDialog(null)}>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

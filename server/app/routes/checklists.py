@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
+from sqlalchemy.exc import IntegrityError
 from ..db import db
-from ..models.models import Checklist, CleaningTask, ChecklistTask
+from ..models.models import Checklist, CleaningTask, ChecklistTask, TaskAssignment
 
 bp = Blueprint("checklists", __name__)
 
@@ -39,7 +40,11 @@ def create_checklist():
         if task:
             db.session.add(ChecklistTask(checklist_id=cl.id, task_id=task.id, position=pos))
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        return jsonify({"message": "Checklist with same name/id already exists", "detail": str(e.orig) if getattr(e, 'orig', None) else None}), 409
     return jsonify({"id": cl.ext_id or str(cl.id)}), 201
 
 
@@ -73,6 +78,9 @@ def delete_checklist(ext_id: str):
     cl = Checklist.get_by_identifier(ext_id)
     if not cl:
         return jsonify({"message": "Not found"}), 404
+    # Prevent deleting checklists that are used by assignments
+    if TaskAssignment.query.filter_by(checklist_id=cl.id).first():
+        return jsonify({"message": "Checklist is in use by assignments"}), 400
     db.session.delete(cl)
     db.session.commit()
     return jsonify({"ok": True})
